@@ -1,7 +1,6 @@
 # Review preview (issue #7)
 
-Preparation only: this does not authorize publication. Do not push this workflow with the
-current OAuth credential (it lacks workflow scope), enable Pages, add secrets, change
+This workflow does not authorize publication. Do not enable Pages, add secrets, change
 permissions, or run a deployment without separate human approval. Issue #7 stays open until
 the approved public link and the plan's issues have actually been sent to the reviewer.
 
@@ -41,14 +40,15 @@ page. Repository users with artifact access may also read the temporary build ar
 The authorized maintainer must separately arrange:
 
 - A credential permitted to push workflow files, and review/merge onto the default branch.
-  Do not grant this scope or push as part of preparation.
+  This checkout uses the account's existing SSH remote; no extra OAuth scope is needed for
+  that push. Do not grant additional access without approval.
 - GitHub Pages configured to use **GitHub Actions** in this repository. The workflow does
   not enable Pages or grant repository permissions itself.
-- The `github-pages` environment with required human reviewers, appropriate branch
-  restrictions, and self-approval prevented where supported. Verify this gate is available
-  and active before dispatch; naming an environment in YAML does not configure approval.
-- A repository Actions secret named `LANE_MARKER` for marked exports, provided through the
-  secrets UI without printing it. It must be nonempty. Do not add secrets during preparation.
+- The `github-pages` deployment environment. Human approval is obtained in the harness
+  before each manual workflow dispatch. Naming an environment in YAML does not configure
+  a second GitHub reviewer gate; if one is configured separately, respect it too.
+- A repository Actions secret named `LANE_MARKER` for marked exports, provided through
+  the secrets UI or `gh secret set` standard input without printing it. It must be nonempty.
 
 The build job only reads repository contents. The deployment job requests only
 `pages: write` and `id-token: write`; those grants apply to that job, not the build.
@@ -62,7 +62,7 @@ This follows GitHub's [custom Pages workflow documentation](https://docs.github.
    typechecking, and exports to `$RUNNER_TEMP/rig-preview/index.html`. Marked mode fails if
    the secret is empty or whitespace-only. No marker or HTML is written to logs.
 3. `upload-pages-artifact@v4` retains the HTML artifact for one day; no preview enters Git.
-   The human then approves the `github-pages` deployment gate. `deploy-pages@v4` publishes it.
+   `deploy-pages@v4` publishes it after any separately configured environment gate passes.
 4. Record the deployment's exact public HTTPS `page_url` (including any repository path).
    Verify that URL renders the sample digest and banner, without copying the marker into
    logs. After approval to send, give the reviewer that URL and the plan's issue links.
@@ -75,7 +75,7 @@ Artifact expiration does **not** remove the public page or clean its marker.
    workflow in the same repository with mode `clean`. Do not change the Pages domain,
    repository path, or output filename. The workflow explicitly unsets `LANE_MARKER`, even
    if the repository secret still exists; the exporter never reloads it from `.env`.
-2. Approve this deployment separately at the environment gate. It overwrites `index.html`
+2. Respect any separately configured environment gate. It overwrites `index.html`
    at the **exact same public URL**, not a second preview URL.
 3. Fetch that original URL after deployment and confirm the banner reads `no marker set`
    and the old marker is absent (allow for CDN caching). Do not log the old marker or HTML.
