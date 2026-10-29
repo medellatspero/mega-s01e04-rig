@@ -1,6 +1,6 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
 ---
@@ -77,3 +77,30 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Completion record
+
+Review received: the reviewer saw the preview, confirmed by the course; issue #7 is closed.
+The human separately approved replacing the public page with the clean copy.
+
+Preview and clean replacement: https://medellatspero.github.io/mega-s01e04-rig/
+
+Clean deployment: https://github.com/medellatspero/mega-s01e04-rig/actions/runs/40968432568
+(`review-preview.yml`, `main`, `mode=clean`; successful).
+
+Verified the exact original HTTPS URL on 2026-10-29 at 22:47:48 UTC: HTTP 200 HTML,
+banner `no marker set`, previous lane marker absent, and five `data-job` rows. The complete
+response matched the locally rendered clean sample digest for 2026-10-28 exactly; no HTML
+or marker value is recorded here. The dispatch request/reply and verification are retained
+privately outside the repository.
+
+## Issue list
+
+- [#1 — Digest types: shared row and reader contract](https://github.com/medellatspero/mega-s01e04-rig/issues/1)
+- [#2 — Run log reader: aggregate the night's jobs](https://github.com/medellatspero/mega-s01e04-rig/issues/2)
+- [#3 — Digest page: GET /digest/:night](https://github.com/medellatspero/mega-s01e04-rig/issues/3)
+- [#4 — Digest JSON: GET /api/digest/:night](https://github.com/medellatspero/mega-s01e04-rig/issues/4)
+- [#5 — Board links: nights and status counts](https://github.com/medellatspero/mega-s01e04-rig/issues/5)
+- [#6 — Route tests: digest HTML and JSON](https://github.com/medellatspero/mega-s01e04-rig/issues/6)
+- [#7 — Review preview: export HTML and submit public link](https://github.com/medellatspero/mega-s01e04-rig/issues/7)
+- [#8 — Cleanup: replace marked preview and archive plan](https://github.com/medellatspero/mega-s01e04-rig/issues/8)
