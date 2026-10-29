@@ -1,0 +1,71 @@
+name: Review preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Marked review or clean replacement (requires separate human approval)
+        required: true
+        type: choice
+        options:
+          - clean
+          - marked
+        default: clean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-preview
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.16.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - name: Export sample digest
+        shell: bash
+        env:
+          PREVIEW_MODE: ${{ inputs.mode }}
+          LANE_MARKER: ${{ secrets.LANE_MARKER }}
+        run: |
+          case "$PREVIEW_MODE" in
+            marked)
+              if [[ -z "${LANE_MARKER//[[:space:]]/}" ]]; then
+                echo 'Marked mode requires a nonempty LANE_MARKER secret.' >&2
+                exit 1
+              fi
+              ;;
+            clean) unset LANE_MARKER ;;
+            *) echo 'Invalid preview mode.' >&2; exit 1 ;;
+          esac
+          node --import tsx scripts/export-preview.ts "$RUNNER_TEMP/rig-preview/index.html"
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/rig-preview
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy approved preview
+        id: deployment
+        uses: actions/deploy-pages@v4
